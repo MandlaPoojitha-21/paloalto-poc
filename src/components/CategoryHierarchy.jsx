@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { React , useState } from 'react';
 import { PlusCircle } from 'lucide-react';
 import './CategoryHierarchy.css'; // Importing the CSS file
 
@@ -51,7 +51,8 @@ export default function CategoryHierarchy() {
 
   const renderCategoryInputs = (category, depth = 0) => {
     return (
-      <div key={category.id} className="category-input" style={{ marginLeft: `${depth * 20}px` }}>
+        <React.Fragment>
+             <div key={category.id} className="category-input" style={{ marginLeft: `${depth * 20}px` }}>
         <div className="category-row">
           <input
             type="text"
@@ -80,6 +81,8 @@ export default function CategoryHierarchy() {
         </div>
         {category.subcategories.map(subcat => renderCategoryInputs(subcat, depth + 1))}
       </div>
+        </React.Fragment>
+     
     );
   };
 
