@@ -1,7 +1,16 @@
+/* Container Styling */
+.container {
+  width: 100%;
+  position: relative;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
 .category-hierarchy-container {
   padding: 16px;
 }
 
+/* Buttons Styling */
 .add-category-button,
 .submit-button {
   padding: 10px 15px;
@@ -10,12 +19,76 @@
   border: none;
   border-radius: 20px;
   cursor: pointer;
-
-  &:hover {
-    background-color: #fa582d;
-  }
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.3s ease;
 }
 
+.add-category-button:hover,
+.submit-button:hover {
+  background-color: #fa582d;
+}
+
+.add-button {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  gap: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.add-button:hover {
+  background-color: #fa582d;
+}
+
+.action-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  margin-right: 5px;
+  font-size: 16px;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.action-button:hover {
+  color: #fa582d;
+}
+
+.save-button {
+  color: green;
+}
+
+.cancel-button {
+  color: red;
+}
+
+.edit-button {
+  color: #333;
+}
+
+/* Input Fields Styling */
+.input {
+  width: 200px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #fa582d;
+  border-radius: 4px;
+}
+
+/* Category List Styling */
 .category-list {
   margin-bottom: 16px;
 }
@@ -31,39 +104,95 @@
   margin-bottom: 8px;
 }
 
-.input {
-  width: 200px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+/* Dropdown Styling */
+.addcategory-btn-language {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
 
-.add-button {
-  cursor: pointer;
+.language-dropdown {
   display: flex;
   align-items: center;
-  padding: 10px 15px;
-  background-color: #333;
-  color: white;
-  border: none;
+  gap: 4px;
+}
+
+.language-dropdown-button {
+  position: relative;
+  max-width: 190px;
+}
+
+.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid #c1c1c1;
   border-radius: 20px;
+  width: 190px;
+  justify-content: space-between;
+  font-size: 14px;
   cursor: pointer;
+  transition: border-color 0.3s ease;
 }
 
-.icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
+.dropdown-toggle:hover {
+  border-color: #fa582d;
 }
 
+.language-dropdown-open {
+  position: absolute;
+  background-color: white;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.language-dropdown-items {
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.language-dropdown-items.selected {
+  color: #fa582d;
+}
+
+.language-dropdown-items:hover {
+  background-color: #f7f7f7;
+}
+
+.tick-mark {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+  color: #fa582d;
+}
+
+/* Table Styling */
 .table-container {
   overflow-x: auto;
+  margin-top: 20px;
 }
 
 .category-table {
   width: 100%;
   border-collapse: collapse;
   border: 1px solid #ccc;
+  margin-bottom: 20px;
 }
 
 .table-header {
@@ -76,72 +205,52 @@
 .table-cell {
   padding: 8px;
   border-bottom: 1px solid #ccc;
+  vertical-align: middle;
 }
 
-.addcategory-btn-language {
+.table-cell:first-child {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-
-  .language-dropdown {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    .language-dropdown-button {
-      position: relative;
-      max-width: 190px;
-
-      .dropdown-toggle {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 10px;
-        background: transparent;
-        border: 1px solid #c1c1c1;
-        border-radius: 20px;
-        width: 190px;
-        justify-content: space-between;
-        font-size: 14px;
-
-
-      }
-
-      .language-dropdown-open {
-        position: absolute;
-        background-color: white;
-        width: 100%;
-        border: 1px solid #ccc;
-        border-radius: 20px;
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-
-        .language-dropdown-items {
-          cursor: pointer;
-          font-size: 14px;
-          display: flex;
-          justify-content: space-between;
-
-          &.selected {
-            color: #fa582d;
-          }
-
-          &:hover {
-            background-color: #f7f7f7;
-          }
-
-        }
-
-      }
-    }
-  }
 }
 
+.edit-input {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #fa582d;
+  border-radius: 4px;
+}
+
+/* Horizontal Line Styling */
 .horizental-line {
   border: none;
   border-bottom: 1px solid #dddddd;
   margin: 20px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .input {
+    width: 150px;
+  }
+
+  .dropdown-toggle {
+    width: 150px;
+  }
+
+  .add-button,
+  .add-category-button,
+  .submit-button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .table-header,
+  .table-cell {
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  .action-button {
+    font-size: 14px;
+  }
 }

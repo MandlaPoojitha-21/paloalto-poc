@@ -1,6 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { FaEdit, FaSave, FaTimes } from "react-icons/fa"; // Importing Font Awesome icons
 import "./CategoryHierarchy.css"; // Importing the CSS file
 
+// SVG Icon Components
 export function BiPlus(props) {
   return (
     <svg
@@ -17,6 +19,7 @@ export function BiPlus(props) {
     </svg>
   );
 }
+
 export function LsiconDownOutline(props) {
   return (
     <svg
@@ -53,20 +56,24 @@ export function CharmTick(props) {
 }
 
 export default function CategoryHierarchy() {
+  // State Variables
   const [categories, setCategories] = useState([]);
   const [submittedData, setSubmittedData] = useState({});
-  const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState("");
   const [isLanguageSelected, setIsLanguageSelected] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for toggling dropdown
+  const [editRows, setEditRows] = useState({}); // State for tracking edited rows
 
-  const languages = ["English", "Spanish", "French", "German", "Chinese"]; // List of languages
+  // List of Languages
+  const languages = ["English", "Spanish", "French", "German", "Chinese"];
 
-  const addCategory = (parentId = null, type = 'subcategory') => {
+  // Function to Add Category, Subcategory, or Subboard
+  const addCategory = (parentId = null, type = "subcategory") => {
     const newCategoryOrBoard = {
       id: Date.now().toString(),
-      name: '',
-      fieldName: '',
-      fieldName1: '',
+      name: "",
+      fieldName: "",
+      fieldName1: "",
       subcategories: [],
       subboards: [],
       type: type, // Differentiating between subcategory and subboard
@@ -75,16 +82,19 @@ export default function CategoryHierarchy() {
     if (parentId === null) {
       setCategories([...categories, newCategoryOrBoard]);
     } else {
-      setCategories(updateCategories(categories, parentId, newCategoryOrBoard, type));
+      setCategories(
+        updateCategories(categories, parentId, newCategoryOrBoard, type)
+      );
     }
   };
 
+  // Recursive Function to Update Categories
   const updateCategories = (cats, id, newCat, type) => {
     return cats.map((cat) => {
       if (cat.id === id) {
-        if (type === 'subcategory') {
+        if (type === "subcategory") {
           return { ...cat, subcategories: [...cat.subcategories, newCat] };
-        } else if (type === 'subboard') {
+        } else if (type === "subboard") {
           return { ...cat, subboards: [...cat.subboards, newCat] };
         }
       }
@@ -96,10 +106,12 @@ export default function CategoryHierarchy() {
     });
   };
 
+  // Function to Handle Input Changes in Category Inputs
   const handleInputChange = (id, field, value) => {
     setCategories(updateCategoryField(categories, id, field, value));
   };
 
+  // Recursive Function to Update Category Fields
   const updateCategoryField = (cats, id, field, value) => {
     return cats.map((cat) => {
       if (cat.id === id) {
@@ -113,30 +125,45 @@ export default function CategoryHierarchy() {
     });
   };
 
+  // Recursive Function to Render Category Inputs
   const renderCategoryInputs = (category, depth = 0) => {
-    const isSubboard = category.type === 'subboard';
+    const isSubboard = category.type === "subboard";
 
     return (
-      <div key={category.id} className="category-input" style={{ marginLeft: `${depth * 20}px` }}>
+      <div
+        key={category.id}
+        className="category-input"
+        style={{ marginLeft: `${depth * 20}px` }}
+      >
         <div className="category-row">
           <input
             type="text"
             value={category.name}
-            onChange={(e) => handleInputChange(category.id, 'name', e.target.value)}
-            placeholder={isSubboard ? `Subboard ${depth + 1}` : `Category ${depth + 1}`}
+            onChange={(e) =>
+              handleInputChange(category.id, "name", e.target.value)
+            }
+            placeholder={
+              isSubboard
+                ? `Subboard ${depth + 1}`
+                : `Category ${depth + 1}`
+            }
             className="input"
           />
           <input
             type="text"
             value={category.fieldName}
-            onChange={(e) => handleInputChange(category.id, 'fieldName', e.target.value)}
+            onChange={(e) =>
+              handleInputChange(category.id, "fieldName", e.target.value)
+            }
             placeholder={isSubboard ? "Subboard Field" : "Field Name"}
             className="input"
           />
           <input
             type="text"
             value={category.fieldName1}
-            onChange={(e) => handleInputChange(category.id, 'fieldName1', e.target.value)}
+            onChange={(e) =>
+              handleInputChange(category.id, "fieldName1", e.target.value)
+            }
             placeholder={isSubboard ? "Subboard Field 1" : "Field Name 1"}
             className="input"
           />
@@ -163,7 +190,6 @@ export default function CategoryHierarchy() {
         </div>
 
         {/* Render subcategories and subboards recursively */}
-
         {category.subcategories.map((subcat) =>
           renderCategoryInputs(subcat, depth + 1)
         )}
@@ -174,6 +200,7 @@ export default function CategoryHierarchy() {
     );
   };
 
+  // Function to Handle Language Selection
   const handleLanguageChange = (lang) => {
     setSelectedLanguage(lang);
     setIsLanguageSelected(true);
@@ -186,42 +213,210 @@ export default function CategoryHierarchy() {
     }
   };
 
+  // Function to Handle Form Submission
   const handleSubmit = () => {
-    const emptyCategories = categories.filter(
-      (cat) => !cat.name || !cat.fieldName || !cat.fieldName1
-    );
+    const emptyCategories = findEmptyCategories(categories);
     if (emptyCategories.length > 0) {
-      alert('Please fill in all fields before submitting.');
+      alert("Please fill in all fields before submitting.");
       return;
     }
 
     // Store categories under the selected language key
-
     setSubmittedData((prevData) => {
       const updatedData = {
         ...prevData,
         [selectedLanguage]: categories,
       };
 
-      console.log('Submitted Data:', updatedData); // Log the updated data here
+      console.log("Submitted Data:", updatedData); // Log the updated data here
       return updatedData;
     });
-
-
   };
 
-  const renderCategoryTable = (categories = [], depth = 0) => {
-    return categories.flatMap((category) => [
-      <tr key={category.id}>
-        <td className="table-cell" style={{ paddingLeft: `${depth * 20}px` }}>
-          {category.name}
-        </td>
-        <td className="table-cell">{category.fieldName}</td>
-        <td className="table-cell">{category.fieldName1}</td>
-      </tr>,
-      ...renderCategoryTable(category.subcategories, depth + 1),
-      ...renderCategoryTable(category.subboards, depth + 1),
-    ]);
+  // Helper Function to Find Empty Categories
+  const findEmptyCategories = (cats) => {
+    let empty = [];
+    cats.forEach((cat) => {
+      if (!cat.name || !cat.fieldName || !cat.fieldName1) {
+        empty.push(cat);
+      }
+      empty = empty.concat(findEmptyCategories(cat.subcategories));
+      empty = empty.concat(findEmptyCategories(cat.subboards));
+    });
+    return empty;
+  };
+
+  // Function to Toggle Edit Mode for a Row
+  const toggleEditMode = (id, category) => {
+    setEditRows((prev) => ({
+      ...prev,
+      [id]: {
+        name: category.name,
+        fieldName: category.fieldName,
+        fieldName1: category.fieldName1,
+      },
+    }));
+  };
+
+  // Function to Handle Input Changes in Edit Mode
+  const handleEditInputChange = (id, field, value) => {
+    setEditRows((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: value,
+      },
+    }));
+  };
+
+  // Function to Save Edited Row
+  const saveEdit = (language, id) => {
+    const updatedData = submittedData[language].map((category) =>
+      updateCategoryInData(category, id, editRows[id])
+    );
+
+    setSubmittedData((prevData) => ({
+      ...prevData,
+      [language]: updatedData,
+    }));
+
+    // Remove the row from editRows
+    setEditRows((prev) => {
+      const updatedEditRows = { ...prev };
+      delete updatedEditRows[id];
+      return updatedEditRows;
+    });
+  };
+
+  // Function to Cancel Edit Mode
+  const cancelEdit = (id) => {
+    setEditRows((prev) => {
+      const updatedEditRows = { ...prev };
+      delete updatedEditRows[id];
+      return updatedEditRows;
+    });
+  };
+
+  // Recursive Function to Update Category in Submitted Data
+  const updateCategoryInData = (category, id, updatedFields) => {
+    if (category.id === id) {
+      return { ...category, ...updatedFields };
+    }
+    return {
+      ...category,
+      subcategories: category.subcategories.map((sub) =>
+        updateCategoryInData(sub, id, updatedFields)
+      ),
+      subboards: category.subboards.map((sub) =>
+        updateCategoryInData(sub, id, updatedFields)
+      ),
+    };
+  };
+
+  // Recursive Function to Render Submitted Data Table
+  const renderCategoryTable = (categories = [], depth = 0, language) => {
+    let rows = [];
+
+    categories.forEach((category) => {
+      const isEditing = editRows.hasOwnProperty(category.id);
+
+      rows.push(
+        <tr key={category.id}>
+          <td className="table-cell" style={{ paddingLeft: `${depth * 20}px` }}>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editRows[category.id].name}
+                onChange={(e) =>
+                  handleEditInputChange(category.id, "name", e.target.value)
+                }
+                className="input edit-input"
+              />
+            ) : (
+              category.name
+            )}
+          </td>
+          <td className="table-cell">
+            {isEditing ? (
+              <input
+                type="text"
+                value={editRows[category.id].fieldName}
+                onChange={(e) =>
+                  handleEditInputChange(
+                    category.id,
+                    "fieldName",
+                    e.target.value
+                  )
+                }
+                className="input edit-input"
+              />
+            ) : (
+              category.fieldName
+            )}
+          </td>
+          <td className="table-cell">
+            {isEditing ? (
+              <input
+                type="text"
+                value={editRows[category.id].fieldName1}
+                onChange={(e) =>
+                  handleEditInputChange(
+                    category.id,
+                    "fieldName1",
+                    e.target.value
+                  )
+                }
+                className="input edit-input"
+              />
+            ) : (
+              category.fieldName1
+            )}
+          </td>
+          <td className="table-cell">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={() => saveEdit(language, category.id)}
+                  className="action-button save-button"
+                  aria-label="Save"
+                >
+                  <FaSave />
+                </button>
+                <button
+                  onClick={() => cancelEdit(category.id)}
+                  className="action-button cancel-button"
+                  aria-label="Cancel"
+                >
+                  <FaTimes />
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => toggleEditMode(category.id, category)}
+                className="action-button edit-button"
+                aria-label="Edit"
+              >
+                <FaEdit />
+              </button>
+            )}
+          </td>
+        </tr>
+      );
+
+      // Recursively render subcategories and subboards
+      if (category.subcategories.length > 0) {
+        rows = rows.concat(
+          renderCategoryTable(category.subcategories, depth + 1, language)
+        );
+      }
+      if (category.subboards.length > 0) {
+        rows = rows.concat(
+          renderCategoryTable(category.subboards, depth + 1, language)
+        );
+      }
+    });
+
+    return rows;
   };
 
   return (
@@ -235,7 +430,7 @@ export default function CategoryHierarchy() {
       }}
     >
       <div className="category-hierarchy-container">
-        {/* Language dropdown */}
+        {/* Language Dropdown */}
         <div className="addcategory-btn-language">
           <div className="language-dropdown">
             <label>Select Language: </label>
@@ -255,8 +450,9 @@ export default function CategoryHierarchy() {
                     <div
                       key={lang}
                       onClick={() => handleLanguageChange(lang)}
-                      className={`language-dropdown-items ${lang === selectedLanguage ? "selected" : ""
-                        }`}
+                      className={`language-dropdown-items ${
+                        lang === selectedLanguage ? "selected" : ""
+                      }`}
                     >
                       {lang}
                       {lang === selectedLanguage && (
@@ -270,7 +466,7 @@ export default function CategoryHierarchy() {
               )}
             </div>
           </div>
-          {/* Conditionally render the Add Category button only after a language is selected */}
+          {/* Conditionally Render the Add Category Button Only After a Language is Selected */}
           {isLanguageSelected && (
             <>
               <button
@@ -282,6 +478,8 @@ export default function CategoryHierarchy() {
             </>
           )}
         </div>
+
+        {/* Category Inputs */}
         <div className="category-list">
           {isLanguageSelected && (
             <>
@@ -293,7 +491,7 @@ export default function CategoryHierarchy() {
           )}
         </div>
 
-        {/* Submit button */}
+        {/* Submit Button */}
         {isLanguageSelected && categories.length > 0 && (
           <div className="submit-button-container">
             <hr className="horizental-line" />
@@ -302,7 +500,8 @@ export default function CategoryHierarchy() {
             </button>
           </div>
         )}
-        {/* Display submitted data */}
+
+        {/* Display Submitted Data */}
         {Object.keys(submittedData).length > 0 && (
           <div className="table-container">
             <h3>Submitted Data:</h3>
@@ -315,10 +514,15 @@ export default function CategoryHierarchy() {
                       <th className="table-header">Categories</th>
                       <th className="table-header">Field Name</th>
                       <th className="table-header">Field Name 1</th>
+                      <th className="table-header">Actions</th> {/* Added Actions Header */}
                     </tr>
                   </thead>
                   <tbody>
-                    {renderCategoryTable(submittedData[language])}
+                    {renderCategoryTable(
+                      submittedData[language],
+                      0,
+                      language
+                    )}
                   </tbody>
                 </table>
               </div>
