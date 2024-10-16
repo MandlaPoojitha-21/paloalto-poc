@@ -73,6 +73,16 @@
   color: #333;
 }
 
+/* Delete Button Styling */
+.delete-button {
+  color: red; 
+  margin-left: 10px; /* Added margin for better spacing */
+}
+
+.delete-button:hover {
+  color: #ff4d4d; 
+}
+
 /* Input Fields Styling */
 .input {
   width: 200px;

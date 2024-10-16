@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FaEdit, FaSave, FaTimes } from "react-icons/fa"; // Importing Font Awesome icons
+import { useState } from "react";
+import { FaEdit, FaSave, FaTimes, FaTrash } from "react-icons/fa"; // Importing Font Awesome icons, including FaTrash
 import "./CategoryHierarchy.css"; // Importing the CSS file
 
 // SVG Icon Components
@@ -58,7 +58,11 @@ export function CharmTick(props) {
 export default function CategoryHierarchy() {
   // State Variables
   const [categories, setCategories] = useState([]);
-  const [submittedData, setSubmittedData] = useState({});
+  const [submittedData, setSubmittedData] = useState(() => {
+    // Initialize from localStorage if available
+    const savedData = localStorage.getItem("submittedData");
+    return savedData ? JSON.parse(savedData) : {};
+  });
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [isLanguageSelected, setIsLanguageSelected] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for toggling dropdown
@@ -70,7 +74,7 @@ export default function CategoryHierarchy() {
   // Function to Add Category, Subcategory, or Subboard
   const addCategory = (parentId = null, type = "subcategory") => {
     const newCategoryOrBoard = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random()}`, // Ensure unique ID
       name: "",
       fieldName: "",
       fieldName1: "",
@@ -143,9 +147,7 @@ export default function CategoryHierarchy() {
               handleInputChange(category.id, "name", e.target.value)
             }
             placeholder={
-              isSubboard
-                ? `Subboard ${depth + 1}`
-                : `Category ${depth + 1}`
+              isSubboard ? `Subboard ${depth + 1}` : `Category ${depth + 1}`
             }
             className="input"
           />
@@ -205,12 +207,7 @@ export default function CategoryHierarchy() {
     setSelectedLanguage(lang);
     setIsLanguageSelected(true);
     setIsDropdownOpen(false);
-    // Load previous categories for the selected language, if any
-    if (submittedData[lang]) {
-      setCategories(submittedData[lang]);
-    } else {
-      setCategories([]); // Reset categories if no previous data for the selected language
-    }
+    setCategories([]);
   };
 
   // Function to Handle Form Submission
@@ -221,16 +218,22 @@ export default function CategoryHierarchy() {
       return;
     }
 
-    // Store categories under the selected language key
     setSubmittedData((prevData) => {
+      const existingCategories = prevData[selectedLanguage] || [];
       const updatedData = {
         ...prevData,
-        [selectedLanguage]: categories,
+        [selectedLanguage]: [...existingCategories, ...categories],
       };
+
+      // Persist data to localStorage
+      localStorage.setItem("submittedData", JSON.stringify(updatedData));
 
       console.log("Submitted Data:", updatedData); // Log the updated data here
       return updatedData;
     });
+
+    // Clear the input fields after submission
+    setCategories([]);
   };
 
   // Helper Function to Find Empty Categories
@@ -275,10 +278,17 @@ export default function CategoryHierarchy() {
       updateCategoryInData(category, id, editRows[id])
     );
 
-    setSubmittedData((prevData) => ({
-      ...prevData,
-      [language]: updatedData,
-    }));
+    setSubmittedData((prevData) => {
+      const updatedSubmittedData = {
+        ...prevData,
+        [language]: updatedData,
+      };
+
+      // Persist updated data to localStorage
+      localStorage.setItem("submittedData", JSON.stringify(updatedSubmittedData));
+
+      return updatedSubmittedData;
+    });
 
     // Remove the row from editRows
     setEditRows((prev) => {
@@ -311,6 +321,38 @@ export default function CategoryHierarchy() {
         updateCategoryInData(sub, id, updatedFields)
       ),
     };
+  };
+
+  // Function to Handle Deletion of a Category
+  const handleDelete = (language, id) => {
+    // Confirmation prompt
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this category?"
+    );
+    if (!confirmDelete) return;
+
+    setSubmittedData((prevData) => {
+      const updatedData = {
+        ...prevData,
+        [language]: deleteCategoryById(prevData[language], id),
+      };
+
+      // Persist updated data to localStorage
+      localStorage.setItem("submittedData", JSON.stringify(updatedData));
+
+      return updatedData;
+    });
+  };
+
+  // Recursive Function to Delete a Category by ID
+  const deleteCategoryById = (categories, id) => {
+    return categories
+      .filter((category) => category.id !== id)
+      .map((category) => ({
+        ...category,
+        subcategories: deleteCategoryById(category.subcategories, id),
+        subboards: deleteCategoryById(category.subboards, id),
+      }));
   };
 
   // Recursive Function to Render Submitted Data Table
@@ -391,13 +433,22 @@ export default function CategoryHierarchy() {
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => toggleEditMode(category.id, category)}
-                className="action-button edit-button"
-                aria-label="Edit"
-              >
-                <FaEdit />
-              </button>
+              <>
+                <button
+                  onClick={() => toggleEditMode(category.id, category)}
+                  className="action-button edit-button"
+                  aria-label="Edit"
+                >
+                  <FaEdit />
+                </button>
+                <button
+                  onClick={() => handleDelete(language, category.id)}
+                  className="action-button delete-button"
+                  aria-label="Delete"
+                >
+                  <FaTrash />
+                </button>
+              </>
             )}
           </td>
         </tr>
