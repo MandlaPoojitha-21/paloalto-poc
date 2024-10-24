@@ -199,6 +199,7 @@
 }
 
 .category-table {
+  display: table !important;
   width: 100%;
   border-collapse: collapse;
   border: 1px solid #ccc;
@@ -219,7 +220,7 @@
 }
 
 .table-cell:first-child {
-  display: flex;
+  /* display: flex; */
   align-items: center;
 }
 
@@ -264,3 +265,8 @@
     font-size: 14px;
   }
 }
+.inputs-container , 
+  .add-buttons-container {
+    display: flex;
+    gap: 10px;
+  }

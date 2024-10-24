@@ -3,7 +3,7 @@ import { FaEdit, FaSave, FaTimes, FaTrash } from "react-icons/fa"; // Importing 
 import "./CategoryHierarchy.css"; // Importing the CSS file
 
 // SVG Icon Components
-export function BiPlus(props) {
+function BiPlus(props) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -20,7 +20,7 @@ export function BiPlus(props) {
   );
 }
 
-export function LsiconDownOutline(props) {
+function LsiconDownOutline(props) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -34,7 +34,7 @@ export function LsiconDownOutline(props) {
   );
 }
 
-export function CharmTick(props) {
+function CharmTick(props) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -56,12 +56,45 @@ export function CharmTick(props) {
 }
 
 export default function CategoryHierarchy() {
+    // Function to Fetch Data
+    const fetchData = async () => {
+      const fetchUrl = `/restapi/vc/settings/name/custom.community_navigation/`;
+      const response = await fetch(fetchUrl, { method: "GET" });
+      const data = await response.text();
+      console.log("Raw Data:", data);
+  
+      if (response.ok) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data, 'text/xml');
+        const valueElement = doc.getElementsByTagName('value')[0];
+  
+        if (valueElement) {
+          const encodedValue = valueElement.textContent;
+          const textarea = document.createElement('textarea');
+          textarea.innerHTML = encodedValue;
+          const decodedValue = textarea.value;
+          const jsonData = JSON.parse(decodedValue);
+          console.log("Decoded JSON Data:", jsonData);
+          setSubmittedData(jsonData || {}); // Save the fetched data
+          return jsonData; // Return the fetched data for use in handleSubmit
+        } else {
+          console.error("No <value> element found in the response.");
+        }
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    };
   // State Variables
   const [categories, setCategories] = useState([]);
-  const [submittedData, setSubmittedData] = useState(() => {
-    // Initialize from localStorage if available
-    const savedData = localStorage.getItem("submittedData");
-    return savedData ? JSON.parse(savedData) : {};
+      // Initialize from localStorage if available
+  // const [submittedData, setSubmittedData] = useState(() => {
+
+  //   const savedData = localStorage.getItem("submittedData");
+  //   return savedData ? JSON.parse(savedData) : {};
+  // });
+  const [submittedData, setSubmittedData] = useState(()=>{
+    const savedData = fetchData();
+    return savedData ? (savedData) : {};
   });
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [isLanguageSelected, setIsLanguageSelected] = useState(false);
@@ -69,7 +102,14 @@ export default function CategoryHierarchy() {
   const [editRows, setEditRows] = useState({}); // State for tracking edited rows
 
   // List of Languages
-  const languages = ["English", "Spanish", "French", "German", "Chinese"];
+  //const languages = ["English", "Spanish", "French", "German", "Chinese"];
+  const languages = [
+    { "id": "en", "code": "en-US", "title": "English" },
+    { "id": "es", "code": "es-ES", "title": "Spanish" },
+    { "id": "fr", "code": "fr-FR", "title": "French" },
+    { "id": "de", "code": "de-DE", "title": "German" },
+    { "id": "zh", "code": "zh-CN", "title": "Chinese" }
+  ];
 
   // Function to Add Category, Subcategory, or Subboard
   const addCategory = (parentId = null, type = "subcategory") => {
@@ -140,6 +180,7 @@ export default function CategoryHierarchy() {
         style={{ marginLeft: `${depth * 20}px` }}
       >
         <div className="category-row">
+          <div className="inputs-container">
           <input
             type="text"
             value={category.name}
@@ -169,11 +210,14 @@ export default function CategoryHierarchy() {
             placeholder={isSubboard ? "Subboard Field 1" : "Field Name 1"}
             className="input"
           />
+          </div>
+          
 
           {/* Show buttons only for categories, not subboards */}
           {!isSubboard && (
             <>
-              <button
+            <div className="add-buttons-container">
+            <button
                 onClick={() => addCategory(category.id, "subcategory")}
                 className="add-button"
               >
@@ -187,6 +231,8 @@ export default function CategoryHierarchy() {
                 <BiPlus />
                 Add Subboard
               </button>
+            </div>
+              
             </>
           )}
         </div>
@@ -210,29 +256,60 @@ export default function CategoryHierarchy() {
     setCategories([]);
   };
 
-  // Function to Handle Form Submission
-  const handleSubmit = () => {
+
+ //Function to handle posting to sle
+  const postToSLE = async() =>{
+    const latestFetchedData = await fetchData(); // Ensure you await fetchData here
+    console.log("latest data from sle", latestFetchedData);
+
+    // Prepare the updated data structure
+    const updatedData = {
+      ...latestFetchedData, // Start with the latest fetched data
+    };
+
+    // Append the new categories to the corresponding language key
+    if (selectedLanguage) {
+      const existingCategories = updatedData[selectedLanguage] || [];
+      updatedData[selectedLanguage] = [...existingCategories, ...categories];
+    }
+
+    console.log("Submitted Data after updating with sle data:", updatedData);
+    const url = `/restapi/vc/settings/name/custom.community_navigation/set?value=` + JSON.stringify(updatedData);
+
+     // Post the updated data
+     fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching collection data:", error);
+    });
+    setSubmittedData(updatedData);
+    console.log("latest data to be rendered:", submittedData);
+
+  }
+
+
+  const handleSubmit = async () => {
     const emptyCategories = findEmptyCategories(categories);
     if (emptyCategories.length > 0) {
       alert("Please fill in all fields before submitting.");
       return;
     }
+    
+    console.log("handleSubmit is successful");
 
-    setSubmittedData((prevData) => {
-      const existingCategories = prevData[selectedLanguage] || [];
-      const updatedData = {
-        ...prevData,
-        [selectedLanguage]: [...existingCategories, ...categories],
-      };
-
-      // Persist data to localStorage
-      localStorage.setItem("submittedData", JSON.stringify(updatedData));
-
-      console.log("Submitted Data:", updatedData); // Log the updated data here
-      return updatedData;
-    });
+    postToSLE();
 
     // Clear the input fields after submission
+    // Uncomment the next line if you want to reset the categories after submission
     setCategories([]);
   };
 
@@ -284,9 +361,9 @@ export default function CategoryHierarchy() {
         [language]: updatedData,
       };
 
-      // Persist updated data to localStorage
-      localStorage.setItem("submittedData", JSON.stringify(updatedSubmittedData));
-
+      // Persist updated data to localSxtorage
+      //localStorage.setItem("submittedData", JSON.stringify(updatedSubmittedData));
+      postLatestDataToSLE(updatedSubmittedData);
       return updatedSubmittedData;
     });
 
@@ -323,6 +400,27 @@ export default function CategoryHierarchy() {
     };
   };
 
+  const postLatestDataToSLE = (data) => {
+    const url = `/restapi/vc/settings/name/custom.community_navigation/set?value=` + JSON.stringify(data);
+
+     // Post the updated data
+     fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching collection data:", error);
+    });
+
+  }
+
   // Function to Handle Deletion of a Category
   const handleDelete = (language, id) => {
     // Confirmation prompt
@@ -338,8 +436,12 @@ export default function CategoryHierarchy() {
       };
 
       // Persist updated data to localStorage
-      localStorage.setItem("submittedData", JSON.stringify(updatedData));
+      //localStorage.setItem("submittedData", JSON.stringify(updatedData));
 
+      console.log("A row is deleted now updated data is", updatedData);
+      postLatestDataToSLE(updatedData);
+      console.log("after deleting data is updated to sle");
+  
       return updatedData;
     });
   };
@@ -494,19 +596,19 @@ export default function CategoryHierarchy() {
                 {selectedLanguage || "--Choose a Language--"}
                 <LsiconDownOutline className="dropdown-icon" />
               </button>
-
+              {/* when clicked on dropdown isDropdownOpen is toggled */}
               {isDropdownOpen && (
                 <div className="language-dropdown-open">
                   {languages.map((lang) => (
                     <div
-                      key={lang}
-                      onClick={() => handleLanguageChange(lang)}
+                      key={lang.id}
+                      onClick={() => handleLanguageChange(lang.title)}
                       className={`language-dropdown-items ${
-                        lang === selectedLanguage ? "selected" : ""
+                        lang.title === selectedLanguage ? "selected" : ""
                       }`}
                     >
-                      {lang}
-                      {lang === selectedLanguage && (
+                      {lang.title}
+                      {lang.title === selectedLanguage && (
                         <span className="tick-mark">
                           <CharmTick />
                         </span>
@@ -553,7 +655,7 @@ export default function CategoryHierarchy() {
         )}
 
         {/* Display Submitted Data */}
-        {Object.keys(submittedData).length > 0 && (
+        {/* {Object.keys(submittedData).length > 0 && ( */}
           <div className="table-container">
             <h3>Submitted Data:</h3>
             {Object.keys(submittedData).map((language) => (
@@ -579,7 +681,7 @@ export default function CategoryHierarchy() {
               </div>
             ))}
           </div>
-        )}
+        {/* )} */}
       </div>
     </div>
   );
