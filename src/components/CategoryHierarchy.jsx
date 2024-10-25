@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState ,useRef , useEffect } from "react";
 import { FaEdit, FaSave, FaTimes, FaTrash } from "react-icons/fa"; // Importing Font Awesome icons, including FaTrash
 import "./CategoryHierarchy.css"; // Importing the CSS file
 
@@ -56,43 +56,43 @@ function CharmTick(props) {
 }
 
 export default function CategoryHierarchy() {
-    // Function to Fetch Data
-    const fetchData = async () => {
-      const fetchUrl = `/restapi/vc/settings/name/custom.community_navigation/`;
-      const response = await fetch(fetchUrl, { method: "GET" });
-      const data = await response.text();
-      console.log("Raw Data:", data);
-  
-      if (response.ok) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(data, 'text/xml');
-        const valueElement = doc.getElementsByTagName('value')[0];
-  
-        if (valueElement) {
-          const encodedValue = valueElement.textContent;
-          const textarea = document.createElement('textarea');
-          textarea.innerHTML = encodedValue;
-          const decodedValue = textarea.value;
-          const jsonData = JSON.parse(decodedValue);
-          console.log("Decoded JSON Data:", jsonData);
-          setSubmittedData(jsonData || {}); // Save the fetched data
-          return jsonData; // Return the fetched data for use in handleSubmit
-        } else {
-          console.error("No <value> element found in the response.");
-        }
+  // Function to Fetch Data
+  const fetchData = async () => {
+    const fetchUrl = `/restapi/vc/settings/name/custom.community_navigation/`;
+    const response = await fetch(fetchUrl, { method: "GET" });
+    const data = await response.text();
+    console.log("Raw Data:", data);
+
+    if (response.ok) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data, 'text/xml');
+      const valueElement = doc.getElementsByTagName('value')[0];
+
+      if (valueElement) {
+        const encodedValue = valueElement.textContent;
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = encodedValue;
+        const decodedValue = textarea.value;
+        const jsonData = decodedValue ? JSON.parse(decodedValue) : {};
+        console.log("Decoded JSON Data:", jsonData);
+        setSubmittedData(jsonData || {}); // Save the fetched data
+        return jsonData; // Return the fetched data for use in handleSubmit
       } else {
-        throw new Error(`Request failed with status ${response.status}`);
+        console.error("No <value> element found in the response.");
       }
-    };
+    } else {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+  };
   // State Variables
   const [categories, setCategories] = useState([]);
-      // Initialize from localStorage if available
+  // Initialize from localStorage if available
   // const [submittedData, setSubmittedData] = useState(() => {
 
   //   const savedData = localStorage.getItem("submittedData");
   //   return savedData ? JSON.parse(savedData) : {};
   // });
-  const [submittedData, setSubmittedData] = useState(()=>{
+  const [submittedData, setSubmittedData] = useState(() => {
     const savedData = fetchData();
     return savedData ? (savedData) : {};
   });
@@ -100,24 +100,32 @@ export default function CategoryHierarchy() {
   const [isLanguageSelected, setIsLanguageSelected] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for toggling dropdown
   const [editRows, setEditRows] = useState({}); // State for tracking edited rows
+  const dropdownRef = useRef(null); // Ref for the dropdown
+  const languages = ["English","Spanish","French","German","Chinese","Japanese","Italian","Portuguese","Korean","Taiwan"];
 
-  // List of Languages
-  //const languages = ["English", "Spanish", "French", "German", "Chinese"];
-  const languages = [
-    { "id": "en", "code": "en-US", "title": "English" },
-    { "id": "es", "code": "es-ES", "title": "Spanish" },
-    { "id": "fr", "code": "fr-FR", "title": "French" },
-    { "id": "de", "code": "de-DE", "title": "German" },
-    { "id": "zh", "code": "zh-CN", "title": "Chinese" }
-  ];
+   // useEffect to handle click outside of dropdown
+   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false); // Close the dropdown
+      }
+    };
+
+    // Bind the event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Unbind the event listener on cleanup
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Function to Add Category, Subcategory, or Subboard
   const addCategory = (parentId = null, type = "subcategory") => {
     const newCategoryOrBoard = {
-      id: `${Date.now()}-${Math.random()}`, // Ensure unique ID
+      id: `${Math.floor((Math.random() * 100000) + 1)}`, // Ensure unique ID
       name: "",
-      fieldName: "",
-      fieldName1: "",
+      nodeid: "",
+      url: "",
       subcategories: [],
       subboards: [],
       type: type, // Differentiating between subcategory and subboard
@@ -181,58 +189,58 @@ export default function CategoryHierarchy() {
       >
         <div className="category-row">
           <div className="inputs-container">
-          <input
-            type="text"
-            value={category.name}
-            onChange={(e) =>
-              handleInputChange(category.id, "name", e.target.value)
-            }
-            placeholder={
-              isSubboard ? `Subboard ${depth + 1}` : `Category ${depth + 1}`
-            }
-            className="input"
-          />
-          <input
-            type="text"
-            value={category.fieldName}
-            onChange={(e) =>
-              handleInputChange(category.id, "fieldName", e.target.value)
-            }
-            placeholder={isSubboard ? "Subboard Field" : "Field Name"}
-            className="input"
-          />
-          <input
-            type="text"
-            value={category.fieldName1}
-            onChange={(e) =>
-              handleInputChange(category.id, "fieldName1", e.target.value)
-            }
-            placeholder={isSubboard ? "Subboard Field 1" : "Field Name 1"}
-            className="input"
-          />
+            <input
+              type="text"
+              value={category.name}
+              onChange={(e) =>
+                handleInputChange(category.id, "name", e.target.value)
+              }
+              placeholder={
+                isSubboard ? `Node(board) title ${depth + 1}` : `Node title ${depth + 1}`
+              }
+              className="input"
+            />
+            <input
+              type="text"
+              value={category.nodeid}
+              onChange={(e) =>
+                handleInputChange(category.id, "nodeid", e.target.value)
+              }
+              placeholder={isSubboard ? "Node(board) Id" : "Node Id"}
+              className="input"
+            />
+            <input
+              type="text"
+              value={category.url}
+              onChange={(e) =>
+                handleInputChange(category.id, "url", e.target.value)
+              }
+              placeholder={isSubboard ? "Node(board) URL" : "Node URL"}
+              className="input"
+            />
           </div>
-          
+
 
           {/* Show buttons only for categories, not subboards */}
           {!isSubboard && (
             <>
-            <div className="add-buttons-container">
-            <button
-                onClick={() => addCategory(category.id, "subcategory")}
-                className="add-button"
-              >
-                <BiPlus />
-                Add Subcategory
-              </button>
-              <button
-                onClick={() => addCategory(category.id, "subboard")}
-                className="add-button"
-              >
-                <BiPlus />
-                Add Subboard
-              </button>
-            </div>
-              
+              <div className="add-buttons-container">
+                <button
+                  onClick={() => addCategory(category.id, "subcategory")}
+                  className="add-button"
+                >
+                  <BiPlus />
+                  Add Subcategory
+                </button>
+                <button
+                  onClick={() => addCategory(category.id, "subboard")}
+                  className="add-button"
+                >
+                  <BiPlus />
+                  Add Subboard
+                </button>
+              </div>
+
             </>
           )}
         </div>
@@ -257,8 +265,8 @@ export default function CategoryHierarchy() {
   };
 
 
- //Function to handle posting to sle
-  const postToSLE = async() =>{
+  //Function to handle posting to sle
+  const postToSLE = async () => {
     const latestFetchedData = await fetchData(); // Ensure you await fetchData here
     console.log("latest data from sle", latestFetchedData);
 
@@ -276,26 +284,25 @@ export default function CategoryHierarchy() {
     console.log("Submitted Data after updating with sle data:", updatedData);
     const url = `/restapi/vc/settings/name/custom.community_navigation/set?value=` + JSON.stringify(updatedData);
 
-     // Post the updated data
-     fetch(url, {
+    // Post the updated data
+    fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
     })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching collection data:", error);
-    });
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching collection data:", error);
+      });
     setSubmittedData(updatedData);
     console.log("latest data to be rendered:", submittedData);
 
   }
-
 
   const handleSubmit = async () => {
     const emptyCategories = findEmptyCategories(categories);
@@ -303,11 +310,8 @@ export default function CategoryHierarchy() {
       alert("Please fill in all fields before submitting.");
       return;
     }
-    
     console.log("handleSubmit is successful");
-
     postToSLE();
-
     // Clear the input fields after submission
     // Uncomment the next line if you want to reset the categories after submission
     setCategories([]);
@@ -317,7 +321,7 @@ export default function CategoryHierarchy() {
   const findEmptyCategories = (cats) => {
     let empty = [];
     cats.forEach((cat) => {
-      if (!cat.name || !cat.fieldName || !cat.fieldName1) {
+      if (!cat.name || !cat.nodeid || !cat.url) {
         empty.push(cat);
       }
       empty = empty.concat(findEmptyCategories(cat.subcategories));
@@ -332,8 +336,8 @@ export default function CategoryHierarchy() {
       ...prev,
       [id]: {
         name: category.name,
-        fieldName: category.fieldName,
-        fieldName1: category.fieldName1,
+        nodeid: category.nodeid,
+        url: category.url,
       },
     }));
   };
@@ -403,21 +407,21 @@ export default function CategoryHierarchy() {
   const postLatestDataToSLE = (data) => {
     const url = `/restapi/vc/settings/name/custom.community_navigation/set?value=` + JSON.stringify(data);
 
-     // Post the updated data
-     fetch(url, {
+    // Post the updated data
+    fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
     })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching collection data:", error);
-    });
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching collection data:", error);
+      });
 
   }
 
@@ -441,7 +445,7 @@ export default function CategoryHierarchy() {
       console.log("A row is deleted now updated data is", updatedData);
       postLatestDataToSLE(updatedData);
       console.log("after deleting data is updated to sle");
-  
+
       return updatedData;
     });
   };
@@ -466,7 +470,7 @@ export default function CategoryHierarchy() {
 
       rows.push(
         <tr key={category.id}>
-          <td className="table-cell" style={{ paddingLeft: `${depth * 20}px` }}>
+          <td className="table-cell " style={{ paddingLeft: `${depth * 20}px` }}>
             {isEditing ? (
               <input
                 type="text"
@@ -484,36 +488,36 @@ export default function CategoryHierarchy() {
             {isEditing ? (
               <input
                 type="text"
-                value={editRows[category.id].fieldName}
+                value={editRows[category.id].nodeid}
                 onChange={(e) =>
                   handleEditInputChange(
                     category.id,
-                    "fieldName",
+                    "nodeid",
                     e.target.value
                   )
                 }
                 className="input edit-input"
               />
             ) : (
-              category.fieldName
+              category.nodeid
             )}
           </td>
           <td className="table-cell">
             {isEditing ? (
               <input
                 type="text"
-                value={editRows[category.id].fieldName1}
+                value={editRows[category.id].url}
                 onChange={(e) =>
                   handleEditInputChange(
                     category.id,
-                    "fieldName1",
+                    "url",
                     e.target.value
                   )
                 }
                 className="input edit-input"
               />
             ) : (
-              category.fieldName1
+              category.url
             )}
           </td>
           <td className="table-cell">
@@ -587,7 +591,7 @@ export default function CategoryHierarchy() {
         <div className="addcategory-btn-language">
           <div className="language-dropdown">
             <label>Select Language: </label>
-            <div className="language-dropdown-button">
+            <div className="language-dropdown-button"  ref={dropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -601,14 +605,13 @@ export default function CategoryHierarchy() {
                 <div className="language-dropdown-open">
                   {languages.map((lang) => (
                     <div
-                      key={lang.id}
-                      onClick={() => handleLanguageChange(lang.title)}
-                      className={`language-dropdown-items ${
-                        lang.title === selectedLanguage ? "selected" : ""
-                      }`}
+                      key={lang}
+                      onClick={() => handleLanguageChange(lang)}
+                      className={`language-dropdown-items ${lang === selectedLanguage ? "selected" : ""
+                        }`}
                     >
-                      {lang.title}
-                      {lang.title === selectedLanguage && (
+                      {lang}
+                      {lang === selectedLanguage && (
                         <span className="tick-mark">
                           <CharmTick />
                         </span>
@@ -626,7 +629,7 @@ export default function CategoryHierarchy() {
                 onClick={() => addCategory()}
                 className="add-category-button"
               >
-                ADD Category
+                Add Category
               </button>
             </>
           )}
@@ -656,31 +659,44 @@ export default function CategoryHierarchy() {
 
         {/* Display Submitted Data */}
         {/* {Object.keys(submittedData).length > 0 && ( */}
-          <div className="table-container">
-            <h3>Submitted Data:</h3>
-            {Object.keys(submittedData).map((language) => (
-              <div key={language}>
-                <h4>{language}</h4>
-                <table className="category-table">
-                  <thead>
-                    <tr>
-                      <th className="table-header">Categories</th>
-                      <th className="table-header">Field Name</th>
-                      <th className="table-header">Field Name 1</th>
-                      <th className="table-header">Actions</th> {/* Added Actions Header */}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {renderCategoryTable(
-                      submittedData[language],
-                      0,
-                      language
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            ))}
-          </div>
+        <div className="table-container">
+          <h3 className="table-heading">Submitted Data:</h3>
+          {Object.keys(submittedData).map((language) => {
+            const languageData = submittedData[language];  // Get data for each language
+            if (languageData && languageData.length > 0) {  // Only render if data exists
+              return(
+                
+            
+                  <div key={language}>
+                    <h4 className="language-heading">{language}</h4>
+                    <div className="responsive-table-container">
+                    <table className="category-table">
+                      <thead>
+                        <tr>
+                          <th className="table-header">Node title</th>
+                          <th className="table-header">Node Id</th>
+                          <th className="table-header">Node URL</th>
+                          <th className="table-header">Actions</th> {/* Added Actions Header */}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {renderCategoryTable(
+                          submittedData[language],
+                          0,
+                          language
+                        )}
+                      </tbody>
+                    </table>
+                    </div>
+                  </div>
+                
+              )
+            }
+
+          }
+          
+          )}
+        </div>
         {/* )} */}
       </div>
     </div>

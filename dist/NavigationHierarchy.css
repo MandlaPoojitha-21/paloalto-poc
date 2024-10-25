@@ -1,16 +1,14 @@
-/* Container Styling */
+/* src/App.css */
+/* src/components/CategoryHierarchy.css */
 .container {
   width: 100%;
   position: relative;
   max-width: 1440px;
   margin: 0 auto;
 }
-
 .category-hierarchy-container {
   padding: 16px;
 }
-
-/* Buttons Styling */
 .add-category-button,
 .submit-button {
   padding: 10px 15px;
@@ -24,12 +22,10 @@
   gap: 5px;
   transition: background-color 0.3s ease;
 }
-
 .add-category-button:hover,
 .submit-button:hover {
   background-color: #fa582d;
 }
-
 .add-button {
   cursor: pointer;
   display: flex;
@@ -42,11 +38,9 @@
   gap: 5px;
   transition: background-color 0.3s ease;
 }
-
 .add-button:hover {
   background-color: #fa582d;
 }
-
 .action-button {
   background: transparent;
   border: none;
@@ -56,65 +50,49 @@
   color: #333;
   transition: color 0.3s ease;
 }
-
 .action-button:hover {
   color: #fa582d;
 }
-
 .save-button {
   color: green;
 }
-
 .cancel-button {
   color: red;
 }
-
 .edit-button {
   color: #333;
 }
-
-/* Delete Button Styling */
 .delete-button {
-  color: red; 
-  margin-left: 10px; /* Added margin for better spacing */
+  color: red;
+  margin-left: 10px;
 }
-
 .delete-button:hover {
-  color: #ff4d4d; 
+  color: #ff4d4d;
 }
-
-/* Input Fields Styling */
 .input {
   width: 200px;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
-
 .edit-input {
   width: 100%;
   padding: 6px;
   border: 1px solid #fa582d;
   border-radius: 4px;
 }
-
-/* Category List Styling */
 .category-list {
   margin-bottom: 16px;
 }
-
 .category-input {
   margin-top: 8px;
 }
-
 .category-row {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
-
-/* Dropdown Styling */
 .addcategory-btn-language {
   display: flex;
   flex-direction: row;
@@ -125,7 +103,6 @@
     display: block;
   }
 }
-
 .language-dropdown {
   display: flex;
   align-items: center;
@@ -137,15 +114,13 @@
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: flex-start;
-    gap : 10px;
+    gap: 10px;
   }
 }
-
 .language-dropdown-button {
   position: relative;
   max-width: 190px;
 }
-
 .dropdown-toggle {
   display: flex;
   align-items: center;
@@ -159,13 +134,10 @@
   font-size: 14px;
   cursor: pointer;
   transition: border-color 0.3s ease;
-
 }
-
 .dropdown-toggle:hover {
   border-color: #fa582d;
 }
-
 .language-dropdown-open {
   position: absolute;
   background-color: white;
@@ -179,7 +151,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 }
-
 .language-dropdown-items {
   cursor: pointer;
   font-size: 14px;
@@ -189,23 +160,18 @@
   border-radius: 4px;
   transition: background-color 0.3s ease;
 }
-
 .language-dropdown-items.selected {
   color: #fa582d;
 }
-
 .language-dropdown-items:hover {
   background-color: #f7f7f7;
 }
-
 .tick-mark {
   display: flex;
   align-items: center;
   margin-left: 8px;
   color: #fa582d;
 }
-
-/* Table Styling */
 .table-container {
   overflow-x: auto;
   margin-top: 20px;
@@ -230,73 +196,68 @@
   margin-bottom: 20px;
   overflow-x: auto;
   white-space: nowrap;
-  thead, tbody {
+  thead,
+  tbody {
     width: 100%;
   }
 }
-
 .table-header {
   padding: 8px;
   background-color: #f7f7f7;
   text-align: left;
   border-bottom: 1px solid #ccc;
 }
-
 .table-cell {
   padding: 8px;
   border-bottom: 1px solid #ccc;
   vertical-align: middle;
 }
-
 .table-cell:first-child {
-  /* display: flex; */
   align-items: center;
 }
-
 .edit-input {
   width: 100%;
   padding: 6px;
   border: 1px solid #fa582d;
   border-radius: 4px;
 }
-
-/* Horizontal Line Styling */
 .horizental-line {
   border: none;
   border-bottom: 1px solid #dddddd;
   margin: 20px 0;
 }
-
-/* Responsive Design */
 @media (max-width: 768px) {
   .input {
     width: 150px;
   }
-
   .dropdown-toggle {
     width: 100%;
     white-space: nowrap;
   }
-
   .add-button,
   .add-category-button,
   .submit-button {
     padding: 8px 12px;
     font-size: 14px;
   }
-
   .table-header,
   .table-cell {
     padding: 6px;
     font-size: 14px;
   }
-
   .action-button {
     font-size: 14px;
   }
 }
-.inputs-container , 
-  .add-buttons-container {
-    display: flex;
-    gap: 10px;
-  }
+.inputs-container,
+.add-buttons-container {
+  display: flex;
+  gap: 10px;
+}
+
+/* src/index.css */
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
